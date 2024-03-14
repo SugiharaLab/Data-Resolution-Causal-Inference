@@ -30,7 +30,7 @@ ccm_fw <- function(target, lib, ts_matrix, interaction_matrix, num_trials = 100,
   
   sample1 <- out$rho[out$lib_size == ceiling(nrow(matrix)/5)]
   sample2 <- out$rho[out$lib_size == ceiling(nrow(matrix)/2)]
-  converge_significance_rho <- wilcox.test(sample1, sample2, paired = FALSE, alternative = "less")
+  converge_significance_rho <- t.test(sample1, sample2, paired = FALSE, alternative = "less")
   
   # Main CCM Analysis
   out_main <- ccm(matrix, target_column = 1, lib_column = 2, E = E, tp = tp,
@@ -88,7 +88,7 @@ process_data <- function(s, ts_matrix, interaction_matrix, n_cores, randomize, E
 }
 
 # Main execution
-datasets <- c("PEB", "LZ", "NS", "KF")
+datasets <- c("LZ", "PEB", "KF", "NS")
 n_cores <- detectCores()
 
 for (s in datasets) {
@@ -112,7 +112,7 @@ for (s in datasets) {
      process_data(s, aggregated_ts, interaction_matrix, n_cores, 'random', 4, 1, -1, 'aggregated')
   } else {
      process_data(s, ts_matrix, interaction_matrix, n_cores, 'monthly', 12, 1, 0, 'monthly')
-     process_data(s, ts_matrix, interaction_matrix, n_cores, 'monthly', 4, 12, 0, 'annual')
+     process_data(s, ts_matrix, interaction_matrix, n_cores, 'random', 4, 12, 0, 'annual')
      process_data(s, aggregated_ts, interaction_matrix, n_cores, 'monthly', 12, 1, -1, 'aggregated')
   }
 }

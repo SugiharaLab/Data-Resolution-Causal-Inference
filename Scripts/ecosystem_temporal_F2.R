@@ -1,11 +1,13 @@
 library(ggplot2)
 library(gridExtra)
+library(dplyr)
 
 # Define a function to load data and identify resolved interactions
 identify_resolved_interactions <- function(filepath) {
   load(filepath)
   resolved <- ccm_output_combined$convergence_p_val < 0.05 & ccm_output_combined$ccm_rho > ccm_output_combined$`0.95P_trials`
   ccm_output_combined[resolved, c("target", "lib")]
+
 }
 
 # Systems to analyze

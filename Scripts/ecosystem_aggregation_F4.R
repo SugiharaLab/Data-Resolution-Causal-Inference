@@ -1,7 +1,7 @@
 # Define the function for identifying significant interactions
 identify_resolved_interactions <- function(filepath) {
   load(filepath)
-  resolved <- ccm_output_combined$convergence_p_val < 0.05 & ccm_output_combined$ccm_rho > ccm_output_combined$`0.95P_trials`
+  resolved <- ccm_output_combined$convergence_p_val < .05 & ccm_output_combined$ccm_rho > ccm_output_combined$`0.95P_trials`
   ccm_output_combined[resolved, c("target", "lib")]
 }
 
@@ -64,15 +64,37 @@ for (s in datasets) {
   
   df$has_link <- ifelse(df$has_link, "Link", "No Link")
   df$System <- s  # Add a column for the system
-  
+  df = df[which(df$target_group != df$lib_group),]
   plot_data[[s]] <- df
 }
+# Assuming 'all_plot_data' contains the combined plot data for all datasets as previously prepared
+
+perform_one_sided_t_tests <- function(plot_data) {
+  systems <- unique(plot_data$System)
+  p_values <- list()
+  
+  for (system in systems) {
+    system_data <- subset(plot_data, System == system)
+    if (length(unique(system_data$has_link)) == 2) {
+      # Perform a one-sided t-test
+      test_result <- wilcox.test(interaction_ratio ~ has_link, data = system_data, alternative = "greater")
+      p_values[system] <- test_result$p.value
+    } else {
+      p_values[system] <- NA  # NA for systems where the test is not applicable
+    }
+  }
+  
+  return(p_values)
+}
+
+# Assuming all_plot_data is already prepared
 
 # Load necessary libraries
 library(ggplot2)
 
 # Combine plot data from all datasets
 all_plot_data <- do.call(rbind, plot_data)
+link_counts <- table(all_plot_data$System, all_plot_data$has_link)
 
 # Replace abbreviated names with full names in the all_plot_data dataframe
 all_plot_data$System <- factor(all_plot_data$System,
@@ -93,4 +115,5 @@ ggplot(all_plot_data, aes(x = has_link, y = interaction_ratio, fill = has_link))
         axis.text.x = element_text(size = 12),
         axis.text.y = element_text(size = 12),
         strip.text = element_text(size = 16))
-
+t_test_results <- perform_one_sided_t_tests(all_plot_data)
+link_counts
